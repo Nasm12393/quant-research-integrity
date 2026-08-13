@@ -1,0 +1,4 @@
+symbol,life_id,timestamp,open,high,low,close,volume
+ABCUSDT,life-1,2024-01-02T00:00:00Z,10,12,9,11,2500
+ABCUSDT,life-2,2024-02-02T00:00:00Z,20,22,19,21,3100
+XYZUSDT,life-1,2024-01-02T00:00:00Z,5,6,4,5.5,900
