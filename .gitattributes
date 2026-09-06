@@ -4,3 +4,4 @@
 *.py text eol=lf
 *.toml text eol=lf
 SHA256SUMS.txt text eol=lf
+*.pdf binary

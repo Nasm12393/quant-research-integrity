@@ -1,3 +1,19 @@
+# Private voice references and human recordings must never enter the repository.
+public_demo/voice_reference/*.wav
+public_demo/voice_reference/*.m4a
+public_demo/voice_reference/*.mp3
+public_demo/audio_human/*.wav
+public_demo/audio_human/*.m4a
+public_demo/audio_human/*.mp3
+public_demo/voice_tests/*.wav
+
+# Local model artifacts and generated media are reproducible, not source files.
+tools/OpenVoice/
+tools/MeloTTS/
+public_demo/audio/
+public_demo/*.mp4
+
+# Python build and test artifacts.
 __pycache__/
 *.py[cod]
 .pytest_cache/
