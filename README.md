@@ -93,6 +93,24 @@ Their detailed, inspectable source versions are available in
 [French](docs/SAMPLE_INTEGRITY_REPORT_FR.md). They contain no client artifact
 or private research observation.
 
+## Pine Script source-review fixture
+
+A bounded synthetic Pine example is available in `examples/pine/`. It pairs a
+future-leaking higher-timeframe request with a corrected confirmed-value
+version. The line-by-line matrix in `docs/PINE_AUDIT_SAMPLE_EN.md` demonstrates
+the source review and states which runtime claims remain `NOT VERIFIED`.
+
+This fixture is not a Pine parser and does not certify TradingView fills,
+webhooks, broker execution or future profitability.
+
+Both fixtures were also compiled and executed in one frozen TradingView setup.
+The controlled runtime record is in
+`docs/PINE_TRADINGVIEW_EXECUTION_2026-09-20.md`. TradingView produced materially
+different trade paths but displayed no look-ahead warning for the deliberately
+contaminated fixture. This establishes why successful compilation and a visible
+strategy report do not replace source-level chronology review. It does not
+establish realistic fills, live behavior or future profitability.
+
 ## Service boundary
 
 Commercial drafts are maintained outside the future public release. Their

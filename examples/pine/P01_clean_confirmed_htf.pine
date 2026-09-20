@@ -1,0 +1,28 @@
+//@version=6
+strategy(
+    "P01 clean confirmed HTF",
+    overlay=true,
+    commission_type=strategy.commission.percent,
+    commission_value=0.10,
+    slippage=2,
+    process_orders_on_close=true)
+
+string htf = input.timeframe("60", "Higher timeframe")
+
+// The offset requests the last confirmed HTF close on historical and live bars.
+float confirmedHtfClose = request.security(
+    syminfo.tickerid,
+    htf,
+    close[1],
+    lookahead=barmerge.lookahead_on)
+
+bool longSignal = barstate.isconfirmed and ta.crossover(close, confirmedHtfClose)
+bool exitSignal = barstate.isconfirmed and ta.crossunder(close, confirmedHtfClose)
+
+if longSignal
+    strategy.entry("L", strategy.long)
+
+if exitSignal
+    strategy.close("L")
+
+plot(confirmedHtfClose, "Confirmed HTF close", color=color.blue)

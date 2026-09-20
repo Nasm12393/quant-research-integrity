@@ -1,0 +1,21 @@
+# Explicit allowlist for a future public export.
+# Direct-sales documents, trackers, demand notes, and private Git history are
+# excluded by omission.
+.gitattributes
+.gitignore
+LICENSE
+README.md
+pyproject.toml
+quant_integrity/
+tests/
+examples/
+docs/CASE_STUDY.md
+docs/CINQ_ERREURS_BACKTEST.md
+docs/PUBLICATION_CHECKLIST.md
+docs/PUBLIC_RELEASE_MANIFEST.txt
+docs/SAMPLE_INTEGRITY_REPORT_EN.md
+docs/SAMPLE_INTEGRITY_REPORT_FR.md
+docs/PINE_AUDIT_SAMPLE_EN.md
+docs/PINE_TRADINGVIEW_EXECUTION_2026-09-20.md
+public_demo/sample_backtest_integrity_report_en.pdf
+public_demo/rapport_exemple_integrite_backtest_fr.pdf

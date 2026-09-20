@@ -3,7 +3,7 @@
 **Nature :** demonstration entierement synthetique et reproductible  
 **Auteur :** Nassim Berrahmane  
 **Date :** 2026-09-06  
-**Version auditee :** `010bdecdfd82fe82742216471ba717106c95ae68`  
+**Version auditee :** `public-sample-v1`
 **Verdict global sur le jeu contamine :** `FAIL`
 
 > Ce document montre la forme et le niveau de preuve d'un diagnostic borne. Il
@@ -122,4 +122,3 @@ rejette pas indistinctement toutes les entrees.
 Ce verdict etablit uniquement des proprietes de donnees et de chronologie. Il
 ne certifie ni l'exhaustivite d'une source reelle, ni un mecanisme economique,
 ni une performance future, ni l'adequation au trading live.
-

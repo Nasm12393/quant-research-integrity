@@ -1,0 +1,29 @@
+//@version=6
+strategy(
+    "P01 contaminated future HTF",
+    overlay=true,
+    commission_type=strategy.commission.percent,
+    commission_value=0.10,
+    slippage=2,
+    process_orders_on_close=true)
+
+string htf = input.timeframe("60", "Higher timeframe")
+
+// Deliberate defect: lookahead_on exposes the current HTF close too early historically.
+float futureLeakingHtfClose = request.security(
+    syminfo.tickerid,
+    htf,
+    close,
+    lookahead=barmerge.lookahead_on)
+
+// Deliberate defect: the decision is not restricted to a confirmed chart bar.
+bool longSignal = ta.crossover(close, futureLeakingHtfClose)
+bool exitSignal = ta.crossunder(close, futureLeakingHtfClose)
+
+if longSignal
+    strategy.entry("L", strategy.long)
+
+if exitSignal
+    strategy.close("L")
+
+plot(futureLeakingHtfClose, "Future-leaking HTF close", color=color.red)

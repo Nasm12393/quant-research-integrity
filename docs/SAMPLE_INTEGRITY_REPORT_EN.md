@@ -3,7 +3,7 @@
 **Nature:** fully synthetic and reproducible demonstration  
 **Author:** Nassim Berrahmane  
 **Date:** 2026-09-06  
-**Audited version:** `010bdecdfd82fe82742216471ba717106c95ae68`  
+**Audited version:** `public-sample-v1`
 **Overall verdict for the contaminated fixture:** `FAIL`
 
 > This document demonstrates the form and evidence standard of a bounded
@@ -120,4 +120,3 @@ does not reject every input indiscriminately.
 This verdict establishes dataset and chronology properties only. It does not
 certify real-source completeness, economic causality, future performance, or
 suitability for live trading.
-
