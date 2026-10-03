@@ -111,6 +111,21 @@ contaminated fixture. This establishes why successful compilation and a visible
 strategy report do not replace source-level chronology review. It does not
 establish realistic fills, live behavior or future profitability.
 
+## TradingView automation incident sample
+
+A separate synthetic report demonstrates a bounded reconstruction of one
+disputed alert-to-order incident. It preserves the enrolled configuration,
+distinguishes one originating alert from repeated webhook delivery attempts,
+and traces connector submissions to broker records without inferring missing
+evidence.
+
+- [Six-page incident audit sample](public_demo/TRADINGVIEW_INCIDENT_AUDIT_SAMPLE_REPORT_2026-10-01.pdf)
+- [Inspectable report source](docs/TRADINGVIEW_INCIDENT_AUDIT_SAMPLE_REPORT_2026-10-01.md)
+
+The scenario is entirely invented. It is not a customer audit, platform
+certification, execution guarantee, trading recommendation or performance
+assessment.
+
 ## Service boundary
 
 Commercial drafts are maintained outside the future public release. Their

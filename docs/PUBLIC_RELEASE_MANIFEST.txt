@@ -17,5 +17,8 @@ docs/SAMPLE_INTEGRITY_REPORT_EN.md
 docs/SAMPLE_INTEGRITY_REPORT_FR.md
 docs/PINE_AUDIT_SAMPLE_EN.md
 docs/PINE_TRADINGVIEW_EXECUTION_2026-09-20.md
+docs/TRADINGVIEW_INCIDENT_AUDIT_SAMPLE_REPORT_2026-10-01.md
 public_demo/sample_backtest_integrity_report_en.pdf
 public_demo/rapport_exemple_integrite_backtest_fr.pdf
+public_demo/TRADINGVIEW_INCIDENT_AUDIT_SAMPLE_REPORT_2026-10-01.pdf
+public_demo/TRADINGVIEW_INCIDENT_AUDIT_SAMPLE_REPORT_2026-10-01.sha256

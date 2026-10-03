@@ -7,6 +7,12 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 PINE = ROOT / "examples" / "pine"
+INCIDENT_SOURCE = (
+    ROOT / "docs" / "TRADINGVIEW_INCIDENT_AUDIT_SAMPLE_REPORT_2026-10-01.md"
+)
+INCIDENT_PDF = (
+    ROOT / "public_demo" / "TRADINGVIEW_INCIDENT_AUDIT_SAMPLE_REPORT_2026-10-01.pdf"
+)
 
 
 class PublicEvidenceTests(unittest.TestCase):
@@ -57,6 +63,21 @@ class PublicEvidenceTests(unittest.TestCase):
         self.assertIn("not evidence", record)
         self.assertIn("NOT VERIFIED", record)
         self.assertIn("No trade was placed", record)
+
+    def test_incident_sample_is_frozen_and_bounded(self) -> None:
+        report = INCIDENT_SOURCE.read_text(encoding="utf-8")
+
+        self.assertEqual(
+            hashlib.sha256(INCIDENT_SOURCE.read_bytes()).hexdigest(),
+            "fc5188795bc257326d59771f85c707c476b0849b381ca835309ca2c1679a9000",
+        )
+        self.assertEqual(
+            hashlib.sha256(INCIDENT_PDF.read_bytes()).hexdigest(),
+            "a2c1f2cc7ce899b1bceefba7cd991849426b047b5f6bf3fc747a408dc71bd10c",
+        )
+        self.assertIn("SYNTHETIC_SAMPLE_NOT_A_CUSTOMER_AUDIT", report)
+        self.assertIn("does not cryptographically", report)
+        self.assertIn("makes no claim about profitability", report)
 
 
 if __name__ == "__main__":
