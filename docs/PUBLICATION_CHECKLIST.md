@@ -1,6 +1,6 @@
 # Publication Checklist
 
-This repository is private until every item below is complete.
+Apply this checklist before any new public release or update.
 
 ## Content boundary
 
@@ -8,8 +8,9 @@ This repository is private until every item below is complete.
   paths, credentials, account data, protocol thresholds, internal hashes, and
   production market values.
 - Confirm that all examples and case-study facts are explicitly synthetic.
-- Confirm that no generated reports, caches, logs, archives, or environment
-  files are included.
+- Confirm that no client or private generated reports, caches, logs, archives,
+  or environment files are included. The three allowlisted synthetic sample
+  PDFs are intentional public examples and must be reviewed separately.
 - Run the clean and contaminated demonstrations and retain only synthetic
   output if screenshots are prepared.
 

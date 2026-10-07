@@ -128,10 +128,9 @@ assessment.
 
 ## Service boundary
 
-Commercial drafts are maintained outside the future public release. Their
-presence in this private working repository is not evidence of customer demand
-and does not authorize outreach. The public release is exported from the
-explicit allowlist in `docs/PUBLIC_RELEASE_MANIFEST.txt`.
+Commercial drafts and sales records are excluded from this public repository.
+The release inventory is controlled by the explicit allowlist in
+`docs/PUBLIC_RELEASE_MANIFEST.txt`.
 
 ## License
 

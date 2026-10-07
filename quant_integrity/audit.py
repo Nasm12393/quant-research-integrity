@@ -82,11 +82,19 @@ def _parse_decimal(value: str, *, field: str) -> Decimal:
 def _read_csv(path: Path, required: set[str]) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
-        fields = set(reader.fieldnames or ())
+        headers = reader.fieldnames or []
+        if len(headers) != len(set(headers)):
+            raise SchemaError(f"{path}: duplicate columns")
+        fields = set(headers)
         missing = required - fields
         if missing:
             raise SchemaError(f"{path}: missing columns {sorted(missing)}")
-        return [dict(row) for row in reader]
+        rows = []
+        for row in reader:
+            if None in row or any(value is None for value in row.values()):
+                raise SchemaError(f"{path}:{reader.line_num}: inconsistent column count")
+            rows.append(dict(row))
+        return rows
 
 
 def _load_lives(path: Path) -> tuple[dict[tuple[str, str], ContractLife], list[Issue]]:

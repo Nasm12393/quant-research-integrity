@@ -191,6 +191,38 @@ class IntegrityAuditTests(unittest.TestCase):
         with self.assertRaises(SchemaError):
             audit_files(lives_path=lives, market_path=market, signals_path=signals)
 
+    def test_duplicate_csv_header_is_rejected(self) -> None:
+        lives, market, signals = self.clean_inputs()
+        lives.write_text(
+            "symbol,symbol,life_id,life_start,cessation_at\n"
+            "ABCUSDT,ABCUSDT,life-1,2024-01-01T00:00:00Z,2024-01-03T09:00:00Z\n",
+            encoding="utf-8",
+        )
+
+        with self.assertRaises(SchemaError):
+            audit_files(lives_path=lives, market_path=market, signals_path=signals)
+
+    def test_incomplete_csv_row_is_rejected(self) -> None:
+        lives, market, signals = self.clean_inputs()
+        market.write_text(
+            MARKET_HEADER + "ABCUSDT,life-1,2024-01-02T00:00:00Z,10,12,9,11\n",
+            encoding="utf-8",
+        )
+
+        with self.assertRaises(SchemaError):
+            audit_files(lives_path=lives, market_path=market, signals_path=signals)
+
+    def test_extra_csv_field_is_rejected(self) -> None:
+        lives, market, signals = self.clean_inputs()
+        signals.write_text(
+            SIGNALS_HEADER
+            + "ABCUSDT,life-1,2024-01-02T10:00:00Z,2024-01-02T10:00:00Z,2024-01-02T10:05:00Z,unexpected\n",
+            encoding="utf-8",
+        )
+
+        with self.assertRaises(SchemaError):
+            audit_files(lives_path=lives, market_path=market, signals_path=signals)
+
     def test_committed_clean_fixture_and_manifest_pass(self) -> None:
         fixture = Path(__file__).resolve().parents[1] / "examples" / "clean"
 

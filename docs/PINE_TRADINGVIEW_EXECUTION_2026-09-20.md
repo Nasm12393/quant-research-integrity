@@ -17,11 +17,10 @@ Trading boundary: no broker connection, no alert, no webhook and no real order
 - source-declared slippage: `2` ticks;
 - `process_orders_on_close=true`.
 
-TradingView Basic allowed two indicators on the chart. The pre-existing
-`PASSION-P01` indicator remained visible while the two P01 fixtures were
+TradingView Basic allowed two indicators on the chart. An unrelated,
+pre-existing indicator remained visible while the two P01 fixtures were
 inserted one at a time. The active strategy report was checked by name before
-each observation. The pre-existing indicator is not referenced by either P01
-source file.
+each observation. That indicator is not referenced by either P01 source file.
 
 ## Source identity
 
