@@ -60,7 +60,10 @@ def _parse_timestamp(value: str, *, field: str) -> datetime:
         raise SchemaError(f"invalid timestamp in {field}: {value!r}") from exc
     if parsed.tzinfo is None:
         raise SchemaError(f"timezone required in {field}: {value!r}")
-    return parsed.astimezone(timezone.utc)
+    try:
+        return parsed.astimezone(timezone.utc)
+    except OverflowError as exc:
+        raise SchemaError(f"{field}: outside supported UTC range: {value!r}") from exc
 
 
 def _parse_optional_timestamp(value: str, *, field: str) -> datetime | None:
@@ -79,22 +82,32 @@ def _parse_decimal(value: str, *, field: str) -> Decimal:
     return number
 
 
-def _read_csv(path: Path, required: set[str]) -> list[dict[str, str]]:
+def _read_csv(path: Path, required: set[str]) -> list[tuple[int, dict[str, str]]]:
     with path.open("r", encoding="utf-8", newline="") as handle:
-        reader = csv.DictReader(handle)
-        headers = reader.fieldnames or []
-        if len(headers) != len(set(headers)):
-            raise SchemaError(f"{path}: duplicate columns")
-        fields = set(headers)
-        missing = required - fields
-        if missing:
-            raise SchemaError(f"{path}: missing columns {sorted(missing)}")
-        rows = []
-        for row in reader:
-            if None in row or any(value is None for value in row.values()):
-                raise SchemaError(f"{path}:{reader.line_num}: inconsistent column count")
-            rows.append(dict(row))
-        return rows
+        reader = csv.reader(handle, strict=True)
+        try:
+            headers = next(reader, [])
+            if len(headers) != len(set(headers)):
+                raise SchemaError(f"{path}: duplicate columns")
+            missing = required - set(headers)
+            if missing:
+                raise SchemaError(f"{path}: missing columns {sorted(missing)}")
+            rows = []
+            next_line = reader.line_num + 1
+            for values in reader:
+                row_number, next_line = next_line, reader.line_num + 1
+                if not values:
+                    continue
+                if len(values) != len(headers):
+                    raise SchemaError(f"{path}:{row_number}: inconsistent column count")
+                rows.append((row_number, dict(zip(headers, values))))
+            if not rows:
+                raise SchemaError(f"{path}: no data rows to audit")
+            return rows
+        except csv.Error as exc:
+            raise SchemaError(f"{path}:{reader.line_num}: malformed CSV: {exc}") from exc
+        except UnicodeError as exc:
+            raise SchemaError(f"{path}: CSV is not valid UTF-8") from exc
 
 
 def _load_lives(path: Path) -> tuple[dict[tuple[str, str], ContractLife], list[Issue]]:
@@ -103,7 +116,7 @@ def _load_lives(path: Path) -> tuple[dict[tuple[str, str], ContractLife], list[I
     issues: list[Issue] = []
     by_symbol: dict[str, list[ContractLife]] = {}
 
-    for row_number, row in enumerate(rows, start=2):
+    for row_number, row in rows:
         key = (row["symbol"].strip(), row["life_id"].strip())
         if not all(key):
             raise SchemaError(f"{path}:{row_number}: empty symbol or life_id")
@@ -144,7 +157,7 @@ def _audit_market(path: Path, lives: dict[tuple[str, str], ContractLife]) -> tup
     issues: list[Issue] = []
     seen: set[tuple[str, str, datetime]] = set()
 
-    for row_number, row in enumerate(rows, start=2):
+    for row_number, row in rows:
         key = (row["symbol"].strip(), row["life_id"].strip())
         timestamp = _parse_timestamp(row["timestamp"], field="timestamp")
         prices = [_parse_decimal(row[name], field=name) for name in ("open", "high", "low", "close")]
@@ -186,7 +199,7 @@ def _audit_signals(path: Path, lives: dict[tuple[str, str], ContractLife]) -> tu
     rows = _read_csv(path, required)
     issues: list[Issue] = []
 
-    for row_number, row in enumerate(rows, start=2):
+    for row_number, row in rows:
         key = (row["symbol"].strip(), row["life_id"].strip())
         feature_end = _parse_timestamp(row["feature_end_at"], field="feature_end_at")
         decision = _parse_timestamp(row["decision_at"], field="decision_at")
@@ -247,6 +260,8 @@ def _audit_manifest(path: Path) -> tuple[int, list[Issue]]:
         actual = _sha256(target)
         if actual.lower() != expected.lower():
             issues.append(Issue("ERROR", "CHECKSUM_MISMATCH", relative, str(path), row_number))
+    if checked == 0 and not issues:
+        issues.append(Issue("ERROR", "EMPTY_MANIFEST", "no checksums declared", str(path)))
     return checked, issues
 
 

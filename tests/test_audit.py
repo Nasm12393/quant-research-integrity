@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from contextlib import redirect_stdout
 import hashlib
+from io import StringIO
+import json
 from pathlib import Path
 import tempfile
 import unittest
 
 from quant_integrity.audit import SchemaError, audit_files
+from quant_integrity.cli import main
 
 
 LIVES_HEADER = "symbol,life_id,life_start,cessation_at\n"
@@ -45,6 +49,99 @@ class IntegrityAuditTests(unittest.TestCase):
             + "ABCUSDT,life-1,2024-01-02T10:00:00Z,2024-01-02T10:00:00Z,2024-01-02T10:05:00Z\n",
         )
         return lives, market, signals
+
+    def run_cli(self, inputs: tuple[Path, Path, Path], *extra: str) -> tuple[int, dict]:
+        args = [part for name, path in zip(("--lives", "--market", "--signals"), inputs)
+                for part in (name, str(path))]
+        stdout = StringIO()
+        with redirect_stdout(stdout):
+            code = main([*args, *extra])
+        return code, json.loads(stdout.getvalue())
+
+    def test_cli_does_not_overwrite_input_or_existing_report(self) -> None:
+        inputs = self.clean_inputs()
+        existing_report = self.write("report.json", '{"kept":true}\n')
+        for path in (*inputs, existing_report):
+            with self.subTest(path=path.name):
+                original = path.read_bytes()
+                code, payload = self.run_cli(inputs, "--json-out", str(path))
+                self.assertEqual(path.read_bytes(), original)
+                self.assertEqual(code, 3)
+                self.assertEqual(payload["status"], "ERROR")
+
+    def test_cli_writes_new_report_without_changing_stdout(self) -> None:
+        inputs = self.clean_inputs()
+        target = self.root / "new" / "report.json"
+        code, payload = self.run_cli(inputs, "--json-out", str(target))
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["status"], "PASS")
+        self.assertEqual(json.loads(target.read_text(encoding="utf-8")), payload)
+
+    def test_cli_reports_invalid_encoding_and_unterminated_csv(self) -> None:
+        inputs = self.clean_inputs()
+        for data in (
+            b"\xff",
+            (MARKET_HEADER.rstrip("\n") + ",note\n"
+             "ABCUSDT,life-1,2024-01-02T00:00:00Z,10,12,9,11,1,\"unterminated\n").encode("utf-8"),
+        ):
+            with self.subTest(data=data):
+                inputs[1].write_bytes(data)
+                code, payload = self.run_cli(inputs)
+                self.assertEqual(code, 3)
+                self.assertEqual(payload["status"], "ERROR")
+
+    def test_cli_rejects_each_header_only_input(self) -> None:
+        for index, name in enumerate(("lives.csv", "market.csv", "signals.csv")):
+            with self.subTest(filename=name):
+                inputs = self.clean_inputs()
+                header = inputs[index].read_bytes().splitlines(keepends=True)[0]
+                inputs[index].write_bytes(header + b"\r\n")
+                code, payload = self.run_cli(inputs)
+                self.assertEqual(code, 3)
+                self.assertEqual(payload["status"], "ERROR")
+                self.assertIn(f"{name}: no data rows to audit", payload["message"])
+
+    def test_cli_reports_utc_underflow_and_overflow_without_a_traceback(self) -> None:
+        inputs = self.clean_inputs()
+        for value in ("0001-01-01T00:00:00+01:00", "9999-12-31T23:59:59-01:00"):
+            with self.subTest(timestamp=value):
+                self.write("lives.csv", LIVES_HEADER + f"ABCUSDT,life-1,{value},\n")
+                code, payload = self.run_cli(inputs)
+                self.assertEqual(code, 3)
+                self.assertEqual(payload["status"], "ERROR")
+                self.assertIn("life_start: outside supported UTC range", payload["message"])
+
+    def test_error_references_physical_record_line_after_multiline_and_blank_rows(self) -> None:
+        lives, market, signals = self.clean_inputs()
+        market.write_text(
+            MARKET_HEADER.rstrip("\n") + ",note\n"
+            'ABCUSDT,life-1,2024-01-02T00:00:00Z,10,12,9,11,1,"two\nlines"\n'
+            '\nABCUSDT,life-1,2024-01-02T01:00:00Z,10,12,9,11,-1,invalid\n',
+            encoding="utf-8",
+        )
+        report = audit_files(lives_path=lives, market_path=market, signals_path=signals)
+        issue, = report.issues
+        self.assertEqual((issue.code, issue.row), ("NEGATIVE_VOLUME", 5))
+
+    def test_comments_only_manifest_cannot_pass(self) -> None:
+        lives, market, signals = self.clean_inputs()
+        manifest = self.write("SHA256SUMS.txt", "# No checksums in this export\n\n")
+        report = audit_files(lives_path=lives, market_path=market, signals_path=signals,
+                             manifest_path=manifest)
+        self.assertEqual(report.status, "FAIL")
+        self.assertEqual(report.manifest_entries_checked, 0)
+        self.assertEqual([issue.code for issue in report.issues], ["EMPTY_MANIFEST"])
+
+    def test_same_market_instant_in_two_timezones_is_a_duplicate(self) -> None:
+        lives, market, signals = self.clean_inputs()
+        market.write_text(
+            MARKET_HEADER
+            + "ABCUSDT,life-1,2024-01-02T00:00:00Z,10,12,9,11,1\n"
+            + "ABCUSDT,life-1,2024-01-02T01:00:00+01:00,10,12,9,11,1\n",
+            encoding="utf-8",
+        )
+        report = audit_files(lives_path=lives, market_path=market, signals_path=signals)
+        self.assertEqual([issue.code for issue in report.issues], ["DUPLICATE_MARKET_ROW"])
 
     def test_clean_point_in_time_dataset_passes(self) -> None:
         lives, market, signals = self.clean_inputs()

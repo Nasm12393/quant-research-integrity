@@ -1,7 +1,8 @@
-* text=auto
+* text=auto eol=lf
 *.csv text eol=lf
 *.md text eol=lf
 *.py text eol=lf
 *.toml text eol=lf
 SHA256SUMS.txt text eol=lf
+*.pine -text !eol
 *.pdf binary

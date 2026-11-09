@@ -16,7 +16,8 @@ backtest usually assumes.
 - rows before listing or after cessation are rejected;
 - flat zero-volume post-cessation archive stubs are identified;
 - duplicate observations are rejected;
-- optional SHA-256 manifests are verified without path traversal.
+- optional SHA-256 manifests verify their listed files without path traversal;
+  a supplied manifest with no checksums fails.
 
 ## Demonstration
 
@@ -43,8 +44,12 @@ python -m quant_integrity `
   --manifest examples\SHA256SUMS.txt
 ```
 
-The command exits with code `2` and reports `FAIL`. Invalid schemas or
-unreadable files exit with code `3`.
+The command exits with code `2` and reports `FAIL`. Invalid schemas,
+malformed CSVs, unreadable files, or an input with no data rows exit with
+code `3`. An empty input does not establish that its checks passed. CSV
+findings refer to the physical line where the record starts. Use
+`--json-out` with a new filename; it will not overwrite an existing report
+or an input.
 
 ## Tests
 
